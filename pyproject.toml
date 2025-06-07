@@ -1,0 +1,78 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ecs-mcp"
+version = "0.1.0"
+description = "Management Control Plane (MCP) server for AWS ECS"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+authors = [
+    { name = "Kirtiranjan", email = "skirtiranjan.sahoo@gmail.com" }
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "boto3>=1.34.0",
+    "botocore>=1.34.0",
+    "litellm>=1.30.0",
+    "python-dotenv>=1.0.0",
+    "typing-extensions>=4.9.0",
+    "pydantic>=2.6.0",
+    "requests>=2.31.0",
+    "python-dateutil>=2.8.2",
+    "mcp-server>=0.1.0",
+    "anyio>=4.0.0"
+]
+
+[project.scripts]
+ecs-mcp = "ecs_mcp.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=3.0.0",
+    "black>=22.0.0",
+    "isort>=5.0.0",
+    "flake8>=4.0.0",
+    "mypy>=0.910",
+    "pre-commit>=2.17.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/ecs-mcp"
+Documentation = "https://ecs-mcp.readthedocs.io/"
+Repository = "https://github.com/yourusername/ecs-mcp.git"
+Issues = "https://github.com/yourusername/ecs-mcp/issues"
+
+[tool.black]
+line-length = 88
+target-version = ["py38"]
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=ecs_mcp --cov-report=term-missing"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ecs_mcp"]
