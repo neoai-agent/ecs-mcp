@@ -3,7 +3,6 @@ import os
 import anyio
 import argparse
 import logging
-from typing import Optional
 from dotenv import load_dotenv
 from ecs_mcp.server import ECSMCPServer
 from ecs_mcp.client import ECSClientConfig, AWSClientManager
