@@ -7,7 +7,7 @@ import json
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError
 
-from ecs_mcp.client import ECSClient, ECSClientConfig
+from ecs_mcp.client import ECSClient, ECSClientConfig, AWSClientManager
 
 # Test data
 MOCK_CLUSTERS = {
@@ -101,10 +101,11 @@ def mock_llm(monkeypatch):
 @pytest.fixture
 def client(mock_config, mock_aws_clients, mock_llm):
     """Create a test client instance."""
+    aws_client_manager = AWSClientManager(mock_config)
     return ECSClient(
-        config=mock_config,
         model="gpt-4-mini",
-        openai_api_key="test-api-key"
+        openai_api_key="test-api-key",
+        aws_client_manager=aws_client_manager
     )
 
 class TestECSClient:
@@ -112,12 +113,13 @@ class TestECSClient:
 
     def test_init(self, mock_config):
         """Test client initialization."""
+        aws_client_manager = AWSClientManager(mock_config)
         client = ECSClient(
-            config=mock_config,
             model="gpt-4-mini",
-            openai_api_key="test-api-key"
+            openai_api_key="test-api-key",
+            aws_client_manager=aws_client_manager
         )
-        assert client.config == mock_config
+        assert client.aws_client_manager == aws_client_manager
         assert client.model == "gpt-4-mini"
         assert client.openai_api_key == "test-api-key"
         assert isinstance(client._name_matching_cache, dict)
@@ -125,7 +127,7 @@ class TestECSClient:
 
     def test_get_aws_credentials(self, client):
         """Test AWS credentials retrieval."""
-        access_key, secret_key = client.get_aws_credentials()
+        access_key, secret_key = client.aws_client_manager.get_aws_credentials()
         assert access_key == "test-access-key"
         assert secret_key == "test-secret-key"
 
@@ -136,16 +138,17 @@ class TestECSClient:
             secret_access_key="",
             region_name="us-west-2"
         )
+        aws_client_manager = AWSClientManager(config)
         client = ECSClient(
-            config=config,
             model="gpt-4-mini",
-            openai_api_key="test-api-key"
+            openai_api_key="test-api-key",
+            aws_client_manager=aws_client_manager
         )
         
-        with patch("boto3.Session") as mock_session:
-            mock_session.return_value.get_credentials.return_value = None
-            with pytest.raises(NoCredentialsError):
-                client.get_aws_credentials()
+        # Test that it returns None, None when no credentials are provided
+        access_key, secret_key = client.aws_client_manager.get_aws_credentials()
+        assert access_key is None
+        assert secret_key is None
 
     def test_list_clusters(self, client, mock_aws_clients):
         """Test listing clusters."""
@@ -194,9 +197,10 @@ class TestECSClient:
         assert "services" in clusters[0]
         assert "service_count" in clusters[0]
 
-    def test_find_matching_names(self, client, mock_aws_clients, mock_llm):
+    @pytest.mark.asyncio
+    async def test_find_matching_names(self, client, mock_aws_clients, mock_llm):
         """Test finding matching names using LLM."""
-        result = client.find_matching_names(
+        result = await client.find_matching_names(
             cluster_name="test-cluster",
             service_name="test-service"
         )
@@ -208,8 +212,9 @@ class TestECSClient:
         # Verify LLM was called
         mock_llm.assert_called()
 
+    @pytest.mark.asyncio
     @patch("ecs_mcp.client.ECSClient.call_llm")
-    def test_find_matching_names_cache(self, mock_llm, client):
+    async def test_find_matching_names_cache(self, mock_llm, client):
         # Reset (clear) the name matching cache so that the first call is a cache miss.
         client._name_matching_cache.clear()
         print("Cleared name matching cache (so that first call is a cache miss).")
@@ -217,13 +222,13 @@ class TestECSClient:
         cluster_name = "test-cluster"
         service_name = "test-service"
         # First call (cache miss) should call the LLM.
-        first_result = client.find_matching_names(cluster_name, service_name)
+        first_result = await client.find_matching_names(cluster_name, service_name)
         assert first_result["status"] == "success"
         assert first_result["cluster_name"] == "test-cluster-1"
         assert first_result["service_name"] == "test-service-1"
         assert mock_llm.call_count == 1, "LLM (call_llm) should be called once on first invocation (cache miss)."
         # Second call (with the same cluster/service name) should hit the cache (i.e. not call the LLM again).
-        second_result = client.find_matching_names(cluster_name, service_name)
+        second_result = await client.find_matching_names(cluster_name, service_name)
         assert second_result["status"] == "success"
         assert second_result["cluster_name"] == "test-cluster-1"
         assert second_result["service_name"] == "test-service-1"
@@ -254,13 +259,14 @@ class TestECSClient:
         with pytest.raises(ClientError):
             client.list_clusters()
 
-    def test_llm_error_handling(self, client, mock_aws_clients, mock_llm):
+    @pytest.mark.asyncio
+    async def test_llm_error_handling(self, client, mock_aws_clients, mock_llm):
         """Test error handling in LLM calls."""
         # Mock LLM error
         mock_llm.side_effect = Exception("LLM API Error")
         
         # Test that the system falls back to basic matching
-        result = client.find_matching_names(
+        result = await client.find_matching_names(
             cluster_name="test-cluster",
             service_name="test-service"
         )
@@ -269,7 +275,8 @@ class TestECSClient:
         # Should use basic matching when LLM fails
         assert result["cluster_name"] is not None or result["service_name"] is not None
 
-    def test_invalid_json_handling(self, client, mock_aws_clients, mock_llm):
+    @pytest.mark.asyncio
+    async def test_invalid_json_handling(self, client, mock_aws_clients, mock_llm):
         """Test handling of invalid JSON from LLM."""
         # Mock LLM returning invalid JSON
         mock_llm.return_value = {
@@ -280,7 +287,7 @@ class TestECSClient:
             }]
         }
         
-        result = client.find_matching_names(
+        result = await client.find_matching_names(
             cluster_name="test-cluster",
             service_name="test-service"
         )

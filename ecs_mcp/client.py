@@ -23,9 +23,9 @@ logger = logging.getLogger('ecs_mcp')
 
 @dataclass
 class ECSClientConfig:
-    access_key: str
-    secret_access_key: str
     region_name: str
+    access_key: str = None
+    secret_access_key: str = None
 
 class AWSClientManager:
     """Manages AWS service client connections."""
@@ -39,16 +39,8 @@ class AWSClientManager:
     def get_aws_credentials(self):
         """Get AWS credentials with proper error handling"""
         if not self.config.access_key or not self.config.secret_access_key:
-            logger.warning("AWS credentials not found in environment variables. Trying default AWS credentials configuration.")
-            try:
-                session = boto3.Session()
-                credentials = session.get_credentials()
-                if credentials:
-                    return credentials.access_key, credentials.secret_key
-                raise NoCredentialsError()
-            except Exception as e:
-                logger.error(f"Failed to get AWS credentials: {str(e)}")
-                raise NoCredentialsError()
+            logger.info("No explicit AWS credentials provided. Using default AWS credential chain (IAM roles, environment variables, etc.)")
+            return None, None
         return self.config.access_key, self.config.secret_access_key
 
     def get_ecs_client(self, region_name=None):
@@ -56,11 +48,17 @@ class AWSClientManager:
         if not self._ecs:
             try:
                 access_key, secret_key = self.get_aws_credentials()
-                self._ecs = boto3.client('ecs',
-                    region_name=region_name or self.config.region_name,
-                    aws_access_key_id=access_key,
-                    aws_secret_access_key=secret_key
-                )
+                client_kwargs = {
+                    'region_name': region_name or self.config.region_name
+                }
+                
+                if access_key and secret_key:
+                    client_kwargs.update({
+                        'aws_access_key_id': access_key,
+                        'aws_secret_access_key': secret_key
+                    })
+                
+                self._ecs = boto3.client('ecs', **client_kwargs)
             except Exception as e:
                 logger.error(f"Failed to create ECS client: {str(e)}")
                 raise
@@ -71,11 +69,17 @@ class AWSClientManager:
         if not self._elbv2:
             try:
                 access_key, secret_key = self.get_aws_credentials()
-                self._elbv2 = boto3.client('elbv2',
-                    region_name=region_name or self.config.region_name,
-                    aws_access_key_id=access_key,
-                    aws_secret_access_key=secret_key
-                )
+                client_kwargs = {
+                    'region_name': region_name or self.config.region_name
+                }
+                
+                if access_key and secret_key:
+                    client_kwargs.update({
+                        'aws_access_key_id': access_key,
+                        'aws_secret_access_key': secret_key
+                    })
+                
+                self._elbv2 = boto3.client('elbv2', **client_kwargs)
             except Exception as e:
                 logger.error(f"Failed to create ELBv2 client: {str(e)}")
                 raise
@@ -86,11 +90,17 @@ class AWSClientManager:
         if not self._cloudwatch:
             try:
                 access_key, secret_key = self.get_aws_credentials()
-                self._cloudwatch = boto3.client('cloudwatch',
-                    region_name=region_name or self.config.region_name,
-                    aws_access_key_id=access_key,
-                    aws_secret_access_key=secret_key
-                )
+                client_kwargs = {
+                    'region_name': region_name or self.config.region_name
+                }
+                
+                if access_key and secret_key:
+                    client_kwargs.update({
+                        'aws_access_key_id': access_key,
+                        'aws_secret_access_key': secret_key
+                    })
+                
+                self._cloudwatch = boto3.client('cloudwatch', **client_kwargs)
             except Exception as e:
                 logger.error(f"Failed to create CloudWatch client: {str(e)}")
                 raise
