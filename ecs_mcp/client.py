@@ -61,8 +61,8 @@ class AWSClientManager:
                     client_kwargs.update({
                         'config': boto3.session.Config(
                             user_agent_extra='ecs-mcp/1.0',
-                            connect_timeout=5,
-                            read_timeout=10
+                            connect_timeout=10,
+                            read_timeout=30
                         )
                     })
                 
@@ -91,8 +91,8 @@ class AWSClientManager:
                     client_kwargs.update({
                         'config': boto3.session.Config(
                             user_agent_extra='ecs-mcp/1.0',
-                            connect_timeout=5,
-                            read_timeout=10
+                            connect_timeout=10,
+                            read_timeout=30
                         )
                     })
                 
@@ -121,8 +121,8 @@ class AWSClientManager:
                     client_kwargs.update({
                         'config': boto3.session.Config(
                             user_agent_extra='ecs-mcp/1.0',
-                            connect_timeout=5,
-                            read_timeout=10
+                            connect_timeout=10,
+                            read_timeout=30
                         )
                     })
                 
