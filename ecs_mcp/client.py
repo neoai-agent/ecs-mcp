@@ -4,11 +4,10 @@ AWS ECS client implementation for MCP server.
 
 from typing import Dict, List, Any
 import boto3
-from botocore.exceptions import ClientError, NoCredentialsError
+from botocore.exceptions import ClientError
 import logging
 import json
 from datetime import datetime, timezone
-from botocore.exceptions import NoCredentialsError
 from litellm import completion
 from dataclasses import dataclass
 
@@ -52,10 +51,19 @@ class AWSClientManager:
                     'region_name': region_name or self.config.region_name
                 }
                 
+                # Only add credentials if they are explicitly provided
                 if access_key and secret_key:
                     client_kwargs.update({
                         'aws_access_key_id': access_key,
                         'aws_secret_access_key': secret_key
+                    })
+                else:
+                    client_kwargs.update({
+                        'config': boto3.session.Config(
+                            user_agent_extra='ecs-mcp/1.0',
+                            connect_timeout=5,
+                            read_timeout=10
+                        )
                     })
                 
                 self._ecs = boto3.client('ecs', **client_kwargs)
@@ -73,10 +81,19 @@ class AWSClientManager:
                     'region_name': region_name or self.config.region_name
                 }
                 
+                # Only add credentials if they are explicitly provided
                 if access_key and secret_key:
                     client_kwargs.update({
                         'aws_access_key_id': access_key,
                         'aws_secret_access_key': secret_key
+                    })
+                else:
+                    client_kwargs.update({
+                        'config': boto3.session.Config(
+                            user_agent_extra='ecs-mcp/1.0',
+                            connect_timeout=5,
+                            read_timeout=10
+                        )
                     })
                 
                 self._elbv2 = boto3.client('elbv2', **client_kwargs)
@@ -94,10 +111,19 @@ class AWSClientManager:
                     'region_name': region_name or self.config.region_name
                 }
                 
+                # Only add credentials if they are explicitly provided
                 if access_key and secret_key:
                     client_kwargs.update({
                         'aws_access_key_id': access_key,
                         'aws_secret_access_key': secret_key
+                    })
+                else:
+                    client_kwargs.update({
+                        'config': boto3.session.Config(
+                            user_agent_extra='ecs-mcp/1.0',
+                            connect_timeout=5,
+                            read_timeout=10
+                        )
                     })
                 
                 self._cloudwatch = boto3.client('cloudwatch', **client_kwargs)

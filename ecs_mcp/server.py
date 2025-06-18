@@ -2,7 +2,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Dict
 import logging
 from mcp.server.fastmcp import FastMCP
-from ecs_mcp.client import ECSClient, ECSClientConfig, AWSClientManager
+from ecs_mcp.client import ECSClient, AWSClientManager
 
 logging.basicConfig(
     level=logging.INFO,
