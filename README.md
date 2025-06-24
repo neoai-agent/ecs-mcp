@@ -16,10 +16,10 @@ Install directly from GitHub using pipx:
 
 ```bash
 # Install
-pipx install git+https://github.com/yourusername/ecs-mcp.git
+pipx install git+https://github.com/neoai-agent/ecs-mcp.git
 
 # Or run without installation
-pipx run git+https://github.com/yourusername/ecs-mcp.git
+pipx run git+https://github.com/neoai-agent/ecs-mcp.git
 ```
 
 ## Quick Start
@@ -87,7 +87,7 @@ For EC2 instance role or ECS task role:
 
 For development setup:
 ```bash
-git clone https://github.com/yourusername/ecs-mcp.git
+git clone https://github.com/neoai-agent/ecs-mcp.git
 cd ecs-mcp
 python -m venv ecs-venv
 source ecs-venv/bin/activate  # On Windows: ecs-venv\Scripts\activate
