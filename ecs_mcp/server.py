@@ -65,7 +65,6 @@ class ECSMCPServer:
                 cluster=correct_cluster,
                 services=[correct_service]
             )
-            logger.info(f"Service response: {service_response}")
             
             if not service_response['services']:
                 return {
