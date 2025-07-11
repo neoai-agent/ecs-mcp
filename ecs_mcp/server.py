@@ -269,7 +269,7 @@ class ECSMCPServer:
                 "message": str(e)
             }
 
-    async def get_ecs_target_group_response_time(self, service_name: str, period_minutes: int = 15) -> Dict:
+    async def get_ecs_target_group_response_time(self, service_name: str, period_minutes: int = 15) -> str:
         """Get response time metrics summary for all target groups"""
         try:
             matches = await self.client.find_matching_names(service_name=service_name)
@@ -383,7 +383,7 @@ class ECSMCPServer:
             }
 
     #Get overall HTTP status codes count and total request count summary
-    async def get_ecs_target_group_request_metrics(self, service_name: str, period_minutes: int = 15) -> Dict:
+    async def get_ecs_target_group_request_metrics(self, service_name: str, period_minutes: int = 15) -> str:
         """Get overall HTTP status codes count and total request count summary for all target groups"""
         try:
             matches = await self.client.find_matching_names(service_name=service_name)
