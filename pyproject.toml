@@ -25,12 +25,13 @@ classifiers = [
     "Topic :: System :: Systems Administration",
 ]
 dependencies = [
-    "boto3>=1.26.0",
-    "anyio>=3.7.0",
-    "openai>=1.0.0",
-    "fastapi>=0.100.0",
-    "uvicorn>=0.23.0",
-    "litellm"
+    "boto3==1.40.0",
+    "anyio==4.5.0",
+    "openai==1.68.2",
+    "litellm==1.75.0",
+    "backoff==2.2.0",
+    "python-dotenv==1.0.0",
+    "mcp-server==0.1.4"
 ]
 
 [project.scripts]
